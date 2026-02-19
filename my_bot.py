@@ -59,12 +59,16 @@ async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 6. تشغيل المحرك بطريقة متوافقة مع Render
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(TOKEN).build()
+    import asyncio
     
+    application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), chat_handler))
     
-    print("البوت يعمل الآن...")
-    # استخدام run_polling مباشرة هو الأفضل في النسخ الحديثة
+    print("البوت بدأ العمل...")
+    
+    # الطريقة دي بتضمن إن الـ Loop يفضل شغال في Render
+    loop = asyncio.get_event_loop()
     application.run_polling(close_loop=False)
+
