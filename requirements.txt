@@ -1,5 +1,4 @@
 
-python-telegram-bot==21.10
+pyTelegramBotAPI-bot==4.26.0
 requests==2.32.5
-textblob==0.18.0
 
