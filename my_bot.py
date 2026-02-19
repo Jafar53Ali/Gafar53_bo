@@ -1,35 +1,68 @@
-import telebot
-import os
-import requests
 
-# جلب التوكن من إعدادات Render
-TOKEN = os.environ.get('BOT_TOKEN')
-# ضع مفتاح الطقس الخاص بك هنا
-WEATHER_API_KEY = "ضع_مفتاح_الطقس_هنا" 
+import logging
+from datetime import datetime
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 
-bot = telebot.TeleBot(TOKEN)
+# 1. الإعدادات والتوكن
+TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك في بوت الطقس! أرسل اسم المدينة بالإنجليزية (مثلاً: Khartoum) لمعرفة الحالة.")
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-@bot.message_handler(func=lambda message: True)
-def get_weather(message):
-    city = message.text
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ar"
-    
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if data["cod"] == 200:
-            temp = data["main"]["temp"]
-            desc = data["weather"][0]["description"]
-            bot.reply_to(message, f"الطقس في {city} حالياً:\n- درجة الحرارة: {temp}°C\n- الحالة: {desc}")
-        else:
-            bot.reply_to(message, "لم أتمكن من العثور على هذه المدينة، تأكد من الاسم بالإنجليزية.")
-    except Exception as e:
-        bot.reply_to(message, "حدث خطأ أثناء جلب البيانات.")
+# 2. الدوال المساعدة
+def get_eid_countdown():
+    eid_date = datetime(2026, 3, 20) 
+    delta = eid_date - datetime.now()
+    return delta.days
 
-if __name__ == "__main__":
-    print("البوت بدأ العمل...")
-    bot.infinity_polling()
+def get_weather_info():
+    return "حالة الطقس في السودان حالياً: الجو صافي ومشرق ☀️، درجة الحرارة 31°م."
+
+# 3. دالة البداية (Start)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("خدماتي 🛠️", callback_data='services'), InlineKeyboardButton("طقس السودان 🌤️", callback_data='weather')],
+        [InlineKeyboardButton("كم باقي للعيد؟ 🌙", callback_data='eid'), InlineKeyboardButton("تواصل معي خاص 📲", callback_data='contact_private')],
+        [InlineKeyboardButton("موقعي الشخصي 🌐", url='https://gafaral.github.io/HTML-Website/')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    welcome_msg = f"أهلاً بك يا {update.effective_user.first_name}! ✨\n\nأنا جعفر بوت ،  طورني Gafar Ali Hamid.\nاضغط على الأزرار أدناه للخدمات السريعة، اسالني الجديد شنو أو جرب تدردش معاي!"
+    await update.message.reply_text(welcome_msg, reply_markup=reply_markup)
+
+# 4. معالج الأزرار
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if query.data == 'services':
+        await query.message.reply_text("🛠️ خدماتي تشمل تطوير الويب وبناء أنظمة الأتمتة الذكية.")
+    elif query.data == 'weather':
+        await query.message.reply_text(get_weather_info())
+    elif query.data == 'eid':
+        await query.message.reply_text(f"🌙 متبقي {get_eid_countdown()} يوم على عيد الفطر المبارك.")
+    elif query.data == 'contact_private':
+        await query.message.reply_text("📩 للتواصل الخاص، يمكنك مراسلتي هنا: @Your_User_Name")
+
+# 5. معالج المحادثة (الردود الذكية) - السطر اللي كان عامل مشكلة
+async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
+    if any(word in text for word in ["صباح الخير", "صباح النور"]):
+        await update.message.reply_text("يا صباح الورد! يومك سعيد يا غالي 🌸")
+    elif any(word in text for word in ["جديدك", "الجديد شنو "]):
+        await update.message.reply_text("والله يا مان مافي جديد")
+    elif any(word in text for word in ["السلام عليكم", "سلام", "هلا"]):
+        await update.message.reply_text(f"{update.effective_user.first_name}وعليكم السلام ورحمة الله وبركاته! نورت  🖥️")
+    elif any(word in text for word in ["كيفك", "اخبارك"]):
+        await update.message.reply_text("أنا بخير جداً طول ما الكود شغال! أنت كيفك؟ 😊")
+    else:
+        # هنا السطر اللي كنت عاوزه، مظبوط برمجياً
+        await update.message.reply_text("فهمتك! بس حالياً أنا مبرمج أرد على تحايا معينة، جرب تضغط على الأزرار فوق.")
+
+# 6. تشغيل المحرك
+if __name__ == '__main__':
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), chat_handler))
+    print("البوت يعمل الآن  ... جربه!")
+    app.run_polling()
+
