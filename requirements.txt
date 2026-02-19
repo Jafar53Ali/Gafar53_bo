@@ -1,2 +1,2 @@
 python-telegram-bot==21010
-requests=2.32.5
+requests==2.32.5
