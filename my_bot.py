@@ -73,12 +73,12 @@ def chat(message):
         bot.reply_to(message, "أنا شغال مية مية الحمد لله، أنت أمورك كيف؟ 😊")
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسط! 😂")
-     else:
-        try:
-            response = model.generate_content(message.text)
-            bot.reply_to(message, response.text if response.text else "لم استطع معالجة هذا الطلب.")
-        except Exception as e:
-            print(f"Error: {e}")
+    else:
+    try:
+        response = model.generate_content(message.text)
+        bot.reply_to(message, response.text if response.text else "لم استطع معالجة هذا الطلب.")
+    except Exception as e:
+         print(f"Error: {e}")
             bot.reply_to(message, "يا هندسة في مشكلة فنية صغيرة، جرب تسأل تاني!")
 
 
