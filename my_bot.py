@@ -74,12 +74,7 @@ def chat(message):
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسط! 😂")
     else:
-      try:
-        response = model.generate_content(message.text)
-      except Exception as e:
-         print(f"Error: {e}")
-            bot.reply_to(message, "يا هندسة في مشكلة فنية صغيرة، جرب تسأل تاني!")
-
+        bot.reply_to(message, "كلامك سمح، بس جرب اضغط على الأزرار فوق عشان تشوف خدماتي.")
 
 
 # ... ( تعريف الدوال    )
