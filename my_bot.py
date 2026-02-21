@@ -1,6 +1,12 @@
 from flask import Flask
 from threading import Thread
+import telebot
+import os
+import google.generativeai as genai  # المكتبة الجديدة
+from datetime import datetime
+from telebot import types
 
+# --- إعداد السيرفر (Keep Alive) ---
 app = Flask('')
 
 @app.route('/')
@@ -8,24 +14,19 @@ def home():
     return "I am alive!"
 
 def run():
-  app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
     t = Thread(target=run)
     t.start()
 
-
-
-
-
-import telebot
-import os
-from datetime import datetime
-from telebot import types
-
-# التوكن بتاعك
+# --- إعدادات البوت و Gemini ---
 TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 bot = telebot.TeleBot(TOKEN)
+
+# إضافة إعداد جيمناي (ياخد المفتاح من Render)
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # دالة حساب الأيام للعيد
 def get_eid_countdown():
@@ -33,24 +34,21 @@ def get_eid_countdown():
     delta = eid_date - datetime.now()
     return max(0, delta.days)
 
-# 1. رسالة الترحيب والأزرار الخمسة
+# 1. رسالة الترحيب والأزرار
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
-    
-    # إنشاء الأزرار الخمسة
     btn1 = types.InlineKeyboardButton("🌐 موقعي الشخصي", url="https://jafar53ali.github.io/Gafar53/")
     btn2 = types.InlineKeyboardButton("🛠️ خدماتي", callback_data='services')
     btn3 = types.InlineKeyboardButton("🌤️ طقس السودان", callback_data='weather')
     btn4 = types.InlineKeyboardButton("📲 تواصل معي خاص", callback_data='contact')
     btn5 = types.InlineKeyboardButton("🌙 متبقي للعيد", callback_data='eid')
-    
     markup.add(btn1, btn2, btn3, btn4, btn5)
     
-    welcome_text = f"أهلاً بك يا {message.from_user.first_name}! ✨\nأنا  جعفر بوت، طورني Gafar Ali Hamidكيف أقدر أساعدك اليوم؟"
+    welcome_text = f"أهلاً بك يا {message.from_user.first_name}! ✨\nأنا جعفر بوت، طورني Gafar Ali Hamid كيف أقدر أساعدك اليوم؟"
     bot.send_message(message.chat.id, welcome_text, reply_markup=markup)
 
-# 2. معالج الأزرار
+# 2. معالج الأزرار (زي ما هو)
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     if call.data == "services":
@@ -63,27 +61,30 @@ def callback_inline(call):
         days = get_eid_countdown()
         bot.send_message(call.message.chat.id, f"🌙 متبقي {days} يوم على عيد الفطر المبارك (20 مارس 2026).")
 
-# 3. الدردشة المألوفة
+# 3. الدردشة المألوفة + Gemini
 @bot.message_handler(func=lambda message: True)
 def chat(message):
     text = message.text.lower()
+    
+    # أوامرك القديمة (ممنوع اللمس)
     if any(word in text for word in ["سلام", "السلام عليكم", "هلا"]):
         bot.reply_to(message, "وعليكم السلام يا غالي! نورتني 🖥️")
     elif any(word in text for word in ["كيفك", "اخبارك"]):
         bot.reply_to(message, "أنا شغال مية مية الحمد لله، أنت أمورك كيف؟ 😊")
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسط! 😂")
+    
+    # لو الكلام مش من الأوامر القديمة، Gemini يجاوب
     else:
-        bot.reply_to(message, "كلامك سمح، بس جرب اضغط على الأزرار فوق عشان تشوف خدماتي.")
+        try:
+            response = model.generate_content(message.text)
+            bot.reply_to(message, response.text)
+        except Exception as e:
+            print(f"Error: {e}")
+            bot.reply_to(message, "يا هندسة في مشكلة فنية صغيرة، جرب تسأل تاني!")
 
-
-# ... ( تعريف الدوال    )
-
+# --- تشغيل البوت ---
 if __name__ == "__main__":
-    # 1.     Render   Port
-    keep_alive() 
-    
-    print("...جعفر بوت بدأ العمل")
-    
-    # 2.  البوت  شغال   
-    bot.infinity_polling()
+    keep_alive()
+    print("البوت شغال...")
+    bot.polling(none_stop=True)
