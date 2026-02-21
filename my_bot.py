@@ -38,7 +38,7 @@ def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
     
     # إنشاء الأزرار الخمسة
-    btn1 = types.InlineKeyboardButton("🌐 موقعي الشخصي", url="https://gafaral.github.io/HTML-Website/")
+    btn1 = types.InlineKeyboardButton("🌐 موقعي الشخصي", url="https://jafar53ali.github.io/Gafar53/")
     btn2 = types.InlineKeyboardButton("🛠️ خدماتي", callback_data='services')
     btn3 = types.InlineKeyboardButton("🌤️ طقس السودان", callback_data='weather')
     btn4 = types.InlineKeyboardButton("📲 تواصل معي خاص", callback_data='contact')
