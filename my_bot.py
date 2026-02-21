@@ -75,23 +75,15 @@ def chat(message):
     else:
         bot.reply_to(message, "كلامك سمح، بس جرب اضغط على الأزرار فوق عشان تشوف خدماتي.")
 
+
+
+# ... (خلي تعريف الدوال فوق زي ما هو)
+
 if __name__ == "__main__":
-    print("جعفر بوت بدأ العمل...")
+    # 1. شغل السيرفر الأول عشان Render يلقى الـ Port
+    keep_alive() 
+    
+    print("...جعفر بوت بدأ العمل")
+    
+    # 2. شغل البوت في آخر سطر في الملف
     bot.infinity_polling()
-
-
-from flask import Flask
-from threading import Thread
-
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "I am alive!"
-
-def run():
-  app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
