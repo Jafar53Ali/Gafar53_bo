@@ -76,7 +76,7 @@ def chat(message):
      else:
         try:
             response = model.generate_content(message.text)
-            bot.reply_to(message, response.text)
+            bot.reply_to(message, response.text if response.text else "لم استطع معالجة هذا الطلب.")
         except Exception as e:
             print(f"Error: {e}")
             bot.reply_to(message, "يا هندسة في مشكلة فنية صغيرة، جرب تسأل تاني!")
