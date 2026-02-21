@@ -74,7 +74,7 @@ def chat(message):
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسط! 😂")
     else:
-    try:
+      try:
         response = model.generate_content(message.text)
         bot.reply_to(message, response.text if response.text else "لم استطع معالجة هذا الطلب.")
     except Exception as e:
