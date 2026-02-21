@@ -14,6 +14,39 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
+import os
+import telebot
+import google.generativeai as genai
+
+# 1. مناداة المفاتيح من الـ Environment اللي ضبطناها في Render
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+
+# 2. إعداد Gemini
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 3. إعداد البوت
+bot = telebot.TeleBot(BOT_TOKEN)
+
+# 4. دالة استقبال الرسائل والرد عبر Gemini
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    try:
+        # إرسال سؤال المستخدم لـ Gemini
+        response = model.generate_content(message.text)
+        # الرد بالنتيجة
+        bot.reply_to(message, response.text)
+    except Exception as e:
+        print(f"Error: {e}")
+        bot.reply_to(message, "يا هندسة في مشكلة فنية صغيرة، جرب تسأل تاني!")
+
+# 5. تشغيل البوت (هذا السطر يوضع في نهاية الملف تماماً)
+if __name__ == "__main__":
+    keep_alive() # تشغيل سيرفر الـ Flask اللي عندك فوق
+    print("البوت شغال وعين الله عليه...")
+    bot.polling(none_stop=True)
+
 
 
 
