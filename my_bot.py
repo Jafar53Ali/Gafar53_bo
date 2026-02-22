@@ -24,7 +24,7 @@ def keep_alive():
 TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 bot = telebot.TeleBot(TOKEN)
 # 1. إعداد المكتبة مع إجبارها على استخدام الإصدار v1 المستقر
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"), transport='rest')
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # 2. استدعاء الموديل (جرب نكتب الاسم بالكامل داخل المسار)
 model = genai.GenerativeModel('gemini-1.5-flash')
