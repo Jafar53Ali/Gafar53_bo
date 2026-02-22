@@ -26,7 +26,7 @@ bot = telebot.TeleBot(TOKEN)
 
 # إضافة إعداد جيمناي (ياخد المفتاح من Render)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('models/gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-pro')
 
 # دالة حساب الأيام للعيد
 def get_eid_countdown():
@@ -56,7 +56,7 @@ def callback_inline(call):
     elif call.data == "weather":
         bot.send_message(call.message.chat.id, "🌤️ طقس السودان: الجو مشمس وجميل، درجة الحرارة حوالي 31°م.")
     elif call.data == "contact":
-        bot.send_message(call.message.chat.id, "📲 يمكنك مراسلتي مباشرة عبر: @GafarAli")
+        bot.send_message(call.message.chat.id, "📲 يمكنك مراسلتي مباشرة عبر: @Julie_53")
     elif call.data == "eid":
         days = get_eid_countdown()
         bot.send_message(call.message.chat.id, f"🌙 متبقي {days} يوم على عيد الفطر المبارك (20 مارس 2026).")
