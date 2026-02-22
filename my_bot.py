@@ -86,5 +86,4 @@ def chat(message):
 # --- تشغيل البوت ---
 if __name__ == "__main__":
     keep_alive()
-    print("البوت شغال...")
-    bot.infinity_polling(timeout=20,logn_polling_timeout=10)
+    print("البوت شغال...")bot.polling(none_stop=True)
