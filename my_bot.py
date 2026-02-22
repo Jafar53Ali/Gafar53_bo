@@ -25,7 +25,7 @@ TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 bot = telebot.TeleBot(TOKEN)
 
 # إضافة إعداد جيمناي (ياخد المفتاح من Render)
-genai.configure (api_Key="AIzaSyAoW9EJbB_aKhuEf2eX3YJPZeACMSHRcsg")
+genai.configure(api_Key=("AIzaSyAoW9EJbB_aKhuEf2eX3YJPZeACMSHRcsg"))
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # دالة حساب الأيام للعيد
