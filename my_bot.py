@@ -2,7 +2,8 @@ from flask import Flask
 from threading import Thread
 import telebot
 import os
-import google.generativeai as genai  # المكتبة الجديدة
+import google.generativeai as genai  # إعدادات Gemini (موجودة ولن تتأثر)
+from groq import Groq  # إضافة مكتبة Groq الجديدة
 from datetime import datetime
 from telebot import types
 
@@ -20,14 +21,16 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# --- إعدادات البوت و Gemini ---
+# --- إعدادات البوت و Gemini و Groq ---
 TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 bot = telebot.TeleBot(TOKEN)
-# 1. إعداد المكتبة مع إجبارها على استخدام الإصدار v1 المستقر
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# 2. استدعاء الموديل (جرب نكتب الاسم بالكامل داخل المسار)
+# 1. إعداد Gemini (كما هو في كودك)
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 2. إعداد Groq (المحرك الجديد لضمان الرد السريع)
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # دالة حساب الأيام للعيد
 def get_eid_countdown():
@@ -35,7 +38,7 @@ def get_eid_countdown():
     delta = eid_date - datetime.now()
     return max(0, delta.days)
 
-# 1. رسالة الترحيب والأزرار
+# 1. رسالة الترحيب والأزرار (ممنوع اللمس كما طلبت)
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -62,7 +65,7 @@ def callback_inline(call):
         days = get_eid_countdown()
         bot.send_message(call.message.chat.id, f"🌙 متبقي {days} يوم على عيد الفطر المبارك (20 مارس 2026).")
 
-# 3. الدردشة المألوفة + Gemini
+# 3. الدردشة المألوفة + الذكاء الاصطناعي (Groq كبديل أساسي)
 @bot.message_handler(func=lambda message: True)
 def chat(message):
     text = message.text.lower()
@@ -75,16 +78,29 @@ def chat(message):
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسط! 😂")
     
-    # لو الكلام مش من الأوامر القديمة، Gemini يجاوب
+    # لو الكلام مش من الأوامر القديمة، Groq (Llama 3) يجاوب لضمان السرعة
     else:
         try:
-            response = model.generate_content(message.text)
-            bot.reply_to(message, response.text)
+            # استخدام Groq للرد السريع بلهجة سودانية
+            completion = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[
+                    {"role": "system", "content": "أنت مساعد ذكي ومرح، ترد باللغة العربية بلهجة سودانية."},
+                    {"role": "user", "content": message.text}
+                ],
+            )
+            bot.reply_to(message, completion.choices[0].message.content)
+            
         except Exception as e:
-            bot.reply_to(message, f"يا هندسة الخطأ هو: {str(e)}")
+            # لو Groq حصل فيه مشكلة، يرجع يحاول بـ Gemini (إعداداتك الأصلية)
+            try:
+                response = model.generate_content(message.text)
+                bot.reply_to(message, response.text)
+            except Exception as e2:
+                bot.reply_to(message, f"يا هندسة في مشكلة في الرد، الخطأ هو: {str(e2)}")
 
-# --- تشغيل البوت ---
+# --- تشغيل البوت بنظام infinity_polling لضمان الاستقرار في Render ---
 if __name__ == "__main__":
     keep_alive()
-    print("البوت شغال...")
-    bot.polling(none_stop=True)
+    print("البوت شغال بنظام Llama 3 و Gemini احتياطي...")
+    bot.infinity_polling(timeout=20, long_polling_timeout=10)
