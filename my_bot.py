@@ -23,10 +23,14 @@ def keep_alive():
 # --- إعدادات البوت و Gemini ---
 TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 bot = telebot.TeleBot(TOKEN)
+# 1. إعداد المكتبة مع إجبارها على استخدام الإصدار v1 المستقر
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"), transport='rest')
 
-# إضافة إعداد جيمناي (ياخد المفتاح من Render)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 2. استدعاء الموديل (جرب نكتب الاسم بالكامل داخل المسار)
+model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+)
+
 
 # دالة حساب الأيام للعيد
 def get_eid_countdown():
