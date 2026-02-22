@@ -27,10 +27,7 @@ bot = telebot.TeleBot(TOKEN)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"), transport='rest')
 
 # 2. استدعاء الموديل (جرب نكتب الاسم بالكامل داخل المسار)
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
-)
-
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # دالة حساب الأيام للعيد
 def get_eid_countdown():
