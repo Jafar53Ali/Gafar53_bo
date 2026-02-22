@@ -91,13 +91,26 @@ def chat(message):
             )
             bot.reply_to(message, completion.choices[0].message.content)
             
+         # لو الكلام مش من الأوامر القديمة، Groq (Llama 3) يجاوب
+    else:
+        try:
+            # ده السطر اللي هيخلي البوت ينطق فوراً
+            completion = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[
+                    {"role": "system", "content": "أنت مساعد ذكي ومرح، ترد باللغة العربية بلهجة سودانية."},
+                    {"role": "user", "content": message.text}
+                ],
+            )
+            bot.reply_to(message, completion.choices[0].message.content)
+            
         except Exception as e:
-            # لو Groq حصل فيه مشكلة، يرجع يحاول بـ Gemini (إعداداتك الأصلية)
+            # لو في مشكلة في Groq، جرب Gemini كخيار أخير
             try:
                 response = model.generate_content(message.text)
                 bot.reply_to(message, response.text)
             except Exception as e2:
-                bot.reply_to(message, f"يا هندسة في مشكلة في الرد، الخطأ هو: {str(e2)}")
+                bot.reply_to(message, "يا هندسة، السيرفر حالياً مضغوط، جرب تسألني كمان دقيقة.")
 
 # --- تشغيل البوت بنظام infinity_polling لضمان الاستقرار في Render ---
 if __name__ == "__main__":
