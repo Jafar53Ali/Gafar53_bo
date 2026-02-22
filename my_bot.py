@@ -2,12 +2,11 @@ from flask import Flask
 from threading import Thread
 import telebot
 import os
-import google.generativeai as genai  # إعدادات Gemini (موجودة ولن تتأثر)
-from groq import Groq  # إضافة مكتبة Groq الجديدة
+from groq import Groq  # استيراد مكتبة اللاما
 from datetime import datetime
 from telebot import types
 
-# --- إعداد السيرفر (Keep Alive) ---
+# --- إعداد السيرفر (Keep Alive) لضمان بقاء البوت لايف في Render ---
 app = Flask('')
 
 @app.route('/')
@@ -21,15 +20,11 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# --- إعدادات البوت و Gemini و Groq ---
+# --- إعدادات البوت و Groq (Llama 3) ---
 TOKEN = "8539100889:AAFu0ioT0TFbQhHaWcpBtimc2vo-3fNBa7E"
 bot = telebot.TeleBot(TOKEN)
 
-# 1. إعداد Gemini (كما هو في كودك)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-1.5-flash')
-
-# 2. إعداد Groq (المحرك الجديد لضمان الرد السريع)
+# إعداد محرك Groq باستخدام المفتاح اللي ضفته في Render
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # دالة حساب الأيام للعيد
@@ -38,7 +33,7 @@ def get_eid_countdown():
     delta = eid_date - datetime.now()
     return max(0, delta.days)
 
-# 1. رسالة الترحيب والأزرار (ممنوع اللمس كما طلبت)
+# 1. رسالة الترحيب والأزرار (كما هي دون تغيير)
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -52,7 +47,7 @@ def start(message):
     welcome_text = f"أهلاً بك يا {message.from_user.first_name}! ✨\nأنا جعفر بوت، طورني Gafar Ali Hamid كيف أقدر أساعدك اليوم؟"
     bot.send_message(message.chat.id, welcome_text, reply_markup=markup)
 
-# 2. معالج الأزرار (زي ما هو)
+# 2. معالج الأزرار
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     if call.data == "services":
@@ -65,12 +60,12 @@ def callback_inline(call):
         days = get_eid_countdown()
         bot.send_message(call.message.chat.id, f"🌙 متبقي {days} يوم على عيد الفطر المبارك (20 مارس 2026).")
 
-# 3. الدردشة المألوفة + الذكاء الاصطناعي (Groq كبديل أساسي)
+# 3. الدردشة المألوفة + Llama 3 (Groq)
 @bot.message_handler(func=lambda message: True)
 def chat(message):
     text = message.text.lower()
     
-    # أوامرك القديمة (ممنوع اللمس)
+    # أوامرك الثابتة (ممنوع اللمس)
     if any(word in text for word in ["سلام", "السلام عليكم", "هلا"]):
         bot.reply_to(message, "وعليكم السلام يا غالي! نورتني 🖥️")
     elif any(word in text for word in ["كيفك", "اخبارك"]):
@@ -78,10 +73,9 @@ def chat(message):
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسط! 😂")
     
-    # لو الكلام مش من الأوامر القديمة، Groq (Llama 3) يجاوب لضمان السرعة
+    # هنا الحقن الصافي لـ Llama 3
     else:
         try:
-            # استخدام Groq للرد السريع بلهجة سودانية
             completion = client.chat.completions.create(
                 model="llama3-8b-8192",
                 messages=[
@@ -90,30 +84,11 @@ def chat(message):
                 ],
             )
             bot.reply_to(message, completion.choices[0].message.content)
-            
-         # لو الكلام مش من الأوامر القديمة، Groq (Llama 3) يجاوب
-    else:
-        try:
-            # ده السطر اللي هيخلي البوت ينطق فوراً
-            completion = client.chat.completions.create(
-                model="llama3-8b-8192",
-                messages=[
-                    {"role": "system", "content": "أنت مساعد ذكي ومرح، ترد باللغة العربية بلهجة سودانية."},
-                    {"role": "user", "content": message.text}
-                ],
-            )
-            bot.reply_to(message, completion.choices[0].message.content)
-            
         except Exception as e:
-            # لو في مشكلة في Groq، جرب Gemini كخيار أخير
-            try:
-                response = model.generate_content(message.text)
-                bot.reply_to(message, response.text)
-            except Exception as e2:
-                bot.reply_to(message, "يا هندسة، السيرفر حالياً مضغوط، جرب تسألني كمان دقيقة.")
+            bot.reply_to(message, "يا هندسة حالياً السيرفر مضغوط شوية، جرب تسألني بعد دقيقة.")
 
-# --- تشغيل البوت بنظام infinity_polling لضمان الاستقرار في Render ---
+# --- تشغيل البوت بنظام infinity_polling لضمان الاستقرار التام ---
 if __name__ == "__main__":
     keep_alive()
-    print("البوت شغال بنظام Llama 3 و Gemini احتياطي...")
+    print("البوت شغال بـ Llama 3 فقط...")
     bot.infinity_polling(timeout=20, long_polling_timeout=10)
