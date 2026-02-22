@@ -80,8 +80,7 @@ def chat(message):
             response = model.generate_content(message.text)
             bot.reply_to(message, response.text)
         except Exception as e:
-            print(f"Error: {e}")
-            bot.reply_to(message, "يا هندسة في مشكلة فنية صغيرة، جرب تسأل تاني!")
+            bot.reply_to(message, f"يا هندسة الخطأ هو: {str(e)}")
 
 # --- تشغيل البوت ---
 if __name__ == "__main__":
