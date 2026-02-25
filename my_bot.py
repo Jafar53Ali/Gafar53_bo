@@ -73,7 +73,7 @@ def chat(message):
     elif any(word in text for word in ["جديدك", "الجديد شنو"]):
         bot.reply_to(message, "والله الجديد إننا شغالين على Render والوضع باسطة! 😂")
     elif any(word in text for word in ["بيبي", "فطرتي ولا اشوي ليك قلبي"]):
-        bot.reply_to(message, "يسلم لي قلبك حبيبي انا انت كويس؟ 😊")
+        bot.reply_to(message, "بعد شنو تاني قايلها لي الساعة 8😒😒")
     elif any(word in text for word in ["بحبك", " ي عمري"]):
         bot.reply_to(message, "ونا كمان بموت فيك")
     
